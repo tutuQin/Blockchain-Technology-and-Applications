@@ -1,0 +1,21 @@
+flowchart LR
+    subgraph NetworkLayer [网络层: P2P Overlay Network]
+        A[新节点加入] --> B{种子节点 Seed Nodes}
+        B --> C[获取活跃节点列表]
+        C --> D[建立邻居连接]
+        D --> E[洪泛算法 Flooding]
+    end
+
+    subgraph Communication [通信特性: Best Effort]
+        E --> F[简单 Simple]
+        E --> G[健壮 Robust]
+        E --> H[低效 Not Efficient]
+    end
+
+    subgraph ApplicationLayer [应用层: Bitcoin Blockchain]
+        F & G & H --> I[交易/区块验证]
+        I --> J[更新本地账本]
+        J --> K[转发给其他对等节点]
+    end
+
+    K -.->|循环传播| E

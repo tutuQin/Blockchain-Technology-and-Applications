@@ -1,0 +1,40 @@
+flowchart LR
+    Start((协议升级)) --> RuleCheck{新规则的性质?}
+
+    %% ================= 硬分叉逻辑 =================
+    RuleCheck -- "宽松/扩容 (e.g. 1MB -> 4MB)" --> HF_Start[硬分叉 Hard Fork]
+    
+    subgraph HardFork_Process ["硬分叉流程: 向下不兼容"]
+        direction TB
+        HF_Start --> HF_Action[新节点挖出 2MB 区块]
+        HF_Action -- "旧节点验证 (按1MB规则)" --> HF_Old_React["❌ 拒绝: 认为区块非法"]
+        HF_Action -- "新节点验证 (按4MB规则)" --> HF_New_React["✅ 接受: 认为区块合法"]
+        
+        HF_Old_React --> HF_Result_Old[旧节点: 沿旧链挖矿]
+        HF_New_React --> HF_Result_New[新节点: 沿新链挖矿]
+        
+        HF_Result_Old & HF_Result_New --> HF_End["⚡ 永久分裂: 两条链并行"]
+    end
+
+    %% ================= 软分叉逻辑 =================
+    RuleCheck -- "收紧/限制 (e.g. 1MB -> 0.5MB)" --> SF_Start[软分叉 Soft Fork]
+
+    subgraph SoftFork_Process ["软分叉流程: 向下兼容"]
+        direction TB
+        SF_Start --> SF_Action[新节点挖出 0.5MB 区块]
+        SF_Action -- "旧节点验证 (按1MB规则)" --> SF_Old_React["✅ 接受: 符合旧规则"]
+        SF_Action -- "新节点验证 (按0.5MB规则)" --> SF_New_React["✅ 接受: 符合新规则"]
+        
+        SF_Old_React & SF_New_React --> SF_Consensus["🔗 暂时共识: 都在一条链上"]
+        
+        SF_Consensus -- "若旧节点挖出 0.8MB 区块" --> SF_Conflict{新算力 > 50% ?}
+        SF_Conflict -- Yes --> SF_Win[新节点拒绝 0.8MB 块 --> 新链更长]
+        SF_Win --> SF_Force[旧节点被迫回滚, 跟随新长链]
+        SF_Force --> SF_End["✅ 系统未分裂 (旧节点被动升级)"]
+    end
+
+    %% 样式调整
+    style HF_End fill:#f96,stroke:#333,stroke-width:2px
+    style SF_End fill:#9f9,stroke:#333,stroke-width:2px
+    style HF_Old_React fill:#ffcccc,stroke:#333
+    style SF_Old_React fill:#ccffcc,stroke:#333

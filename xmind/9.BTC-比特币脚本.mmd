@@ -1,0 +1,23 @@
+flowchart LR
+    subgraph 准备阶段
+    A[当前交易: scriptSig] -- 拼接 --> B[前序交易: scriptPubKey]
+    end
+
+    subgraph 栈操作过程
+    B --> C(1. PUSHDATA Sig)
+    C --> D(2. PUSHDATA PubKey)
+    D --> E(3. DUP: 复制栈顶公钥)
+    E --> F(4. HASH160: 得到PubKeyHash)
+    F --> G(5. PUSHDATA Expected-Hash)
+    G --> H{6. EQUALVERIFY}
+    end
+
+    subgraph 最终验证
+    H -- 不匹配 --> I[FAIL: 交易非法]
+    H -- 匹配 --> J(7. CHECKSIG: 用公钥验签名)
+    J -- 验证通过 --> K[RETURN TRUE: 交易合法]
+    J -- 验证失败 --> I
+    end
+
+    style K fill:#f9f,stroke:#333,stroke-width:4px
+    style I fill:#f66,stroke:#333,stroke-width:2px
