@@ -3,6 +3,8 @@ flowchart LR
     A --> C(第二节：BTC密码学原理)
     A --> D(第三节：BTC数据结构)
     A --> E(第四节：BTC协议)
+    A --> F(第五节：BTC实现)
+    A --> G(第六节：BTC网络)
 
     %% 第一节详细内容
     B --> B1[密码学基础]
@@ -81,3 +83,57 @@ flowchart LR
     E3b --> E3b_desc("<b>攻击方式:</b> 攻击者创建大量虚假节点试图左右共识投票<br/><b>BTC防御手段:</b> 身份无意义, 算力才是投票权(PoW)。虚开10000个节点只能分散自己的总算力, 无法改变全网份额。")
     E3 --> E3c(成员管理 Membership)
     E3c --> E3c_desc("传统分布式系统(如Paxos/Raft)需要许可认证,<br/>而比特币网络是<b>完全开放无准入(Permissionless)</b>的, 任何人只要遵守协议均可加入。")
+
+    %% 第五节详细内容
+    F --> F1[账本模式 Ledger Models]
+    F1 --> F1a(基于交易的账本 Transaction-based)
+    F1a --> F1a_desc("<b>核心:</b> UTXO 模型(比特币采用)<br/>没有账户余额, 钱通过未花费输出传递<br/>易于并行验证与检测双花")
+    F1 --> F1b(基于账户的账本 Account-based)
+    F1b --> F1b_desc("<b>核心:</b> 维护 账户→余额 的映射(以太坊采用)<br/>适合智能合约和状态机")
+
+    F --> F2[UTXO 与全节点验证]
+    F2 --> F2a(维护 UTXO 集合)
+    F2a --> F2a_desc("全节点随着新区块不断删减已花费输出、增加新输出")
+    F2 --> F2b(合法性检查)
+    F2b --> F2b_desc("<b>验证要求:</b><br/>1. 输入必须是现存的 UTXO<br/>2. 签名/脚本必须正确解锁<br/>3. Total Input >= Total Output (差额即为矿工手续费)")
+
+    F --> F3[概率模型与挖矿]
+    F3 --> F3a(伯努利过程 Bernoulli Process)
+    F3a --> F3a_desc("单次哈希运算是成功率极低的伯努利试验, 全网算力共同形成伯努利过程")
+    F3 --> F3b(无记忆性 Memoryless)
+    F3b --> F3b_desc("过去等了多久不影响未来出块时间。相邻出块时间间隔服从<b>指数分布 (Exponential Distribution)</b>, 平均约10分钟出块")
+    F3 --> F3c(无进展性 Progress Free)
+    F3c --> F3c_desc("算力没有累计进度, 每次哈希都是独立的尝试, 保证了 <b>算力占比 = 期望的出块比例</b>")
+    F3 --> F3d(泊松过程 Poisson Process)
+    F3d --> F3d_desc("从宏观上描述: 给定时间段内网络能找到的区块数量服从泊松分布")
+    F3 --> F3e(几何级数 Geometric Series)
+    F3e --> F3e_desc("攻击者落后并尝试追赶的概率随确认数增加而呈 <b>几何级数衰减</b>, 从而形成 <b>事实上不可逆的账本 (Irrevocable Ledger)</b>")
+
+    F --> F4[自私挖矿 Selfish Mining]
+    F4 --> F4a(核心策略)
+    F4a --> F4a_desc("矿工挖到新区块后不广播, 秘密在其私有链上延伸。<br/>在恰当时机一次性公布长链, 冲掉诚实矿工的区块以获得超份额奖励")
+    F4 --> F4b(危害与条件)
+    F4b --> F4b_desc("<b>目的:</b> 并非重写深层历史进行双花, 而是为了多抢区块奖励。<br/><b>条件:</b> 需掌握较大算力(如1/3以上)并在网络传播占优")
+
+    %% 第六节详细内容
+    G --> G1[网络分层架构 Network Architecture]
+    G1 --> G1a(应用层 Application Layer)
+    G1a --> G1a_desc("<b>Bitcoin Blockchain:</b> 处理账本、交易记录、共识机制(PoW)以及余额验证")
+    G1 --> G1b(网络层 Network Layer)
+    G1b --> G1b_desc("<b>P2P Overlay Network:</b> 覆盖在互联网之上的对等网络，节点互联互通，无中心服务器")
+
+    G --> G2[节点类型与发现 Node Discovery]
+    G2 --> G2a(种子节点 Seed Nodes)
+    G2a --> G2a_desc("由社区长期维护的可靠节点。新节点通过 DNS 查询连接它们，获取当前活跃节点列表")
+    G2 --> G2b(全节点 Full Nodes)
+    G2b --> G2b_desc("全天候在线，保存完整区块链数据，严格验证每一笔交易和区块，是网络的“脊梁”")
+
+    G --> G3[消息传播机制 Message Propagation]
+    G3 --> G3a(洪泛算法 Flooding)
+    G3a --> G3a_desc("节点收到新交易/区块 -> 本地验证合法性 -> 转发给所有相连的邻居节点")
+    G3 --> G3b(尽力而为 Best Effort)
+    G3b --> G3b_desc("网络传输不保证100%成功和顺序，通过多次冗余传输确保全网绝大多数节点最终同步数据")
+
+    G --> G4[网络设计哲学 Design Philosophy]
+    G4 --> G4a(核心原则: Simple, Robust, but not Efficient)
+    G4a --> G4a_desc("<b>Simple(简单):</b> 通信协议直接，无繁琐路由选择<br/><b>Robust(鲁棒):</b> 即使大量节点离线，网络也能维持运转，无单点故障<br/><b>Not Efficient(低效):</b> 由于信息需要大量重复传输以保证安全和去中心化，带来较高的延迟与带宽消耗")
